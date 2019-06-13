@@ -17,7 +17,7 @@ class Burndown extends Component {
         let dates = [];
         let issueCounts = {};
 
-        let date = new Date(
+        let startDate = new Date(
             Math.min(
                 ...this.props.issues.map(
                     issue => new Date(issue.githubIssue.created_at)
@@ -26,11 +26,10 @@ class Burndown extends Component {
         );
         let today = new Date();
         let tomorrow = new Date().setDate(today.getDate() + 1);
-        while (date < tomorrow) {
+        for (const date = startDate; date < tomorrow; date.setDate(date.getDate() + 1)) {
             let day = dateFormat(date, 'yyyy-mm-dd');
             dates.push(day);
             issueCounts[day] = 0;
-            date.setDate(date.getDate() + 1);
         }
 
         this.props.issues.forEach(issue => {
@@ -59,12 +58,26 @@ class Burndown extends Component {
                 }
             });
 
+        let endDate = dates[dates.length - dates.map(date => issueCounts[date]).reverse().findIndex(val => val !== 0)];
+
+
         let maxIssues = issueCounts[maxDate];
         let todaysIssues = issueCounts[dates[dates.length - 1]];
-        let elapsedDays = (dates.length - dates.indexOf(maxDate) - 1);
+        let elapsedDays = (dates.indexOf(endDate) - dates.indexOf(maxDate) - 1);
         let rate = (maxIssues - todaysIssues) / elapsedDays;
         let totalDays = dates.indexOf(maxDate) + 1 + (maxIssues / rate);
         let remainingDays = totalDays - dates.length;
+
+        console.log({
+            endDate: endDate,
+            maxDate: maxDate,
+            maxIssues: maxIssues,
+            todaysIssues: todaysIssues,
+            elapsedDays: elapsedDays,
+            rate: rate,
+            totalDays: totalDays,
+            remainingDays: remainingDays
+        });
 
         if (remainingDays !== Infinity) {
             let date = new Date(dates[dates.length - 1]);
